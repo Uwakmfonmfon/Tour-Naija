@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TourNaija - Discover Nigeria</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: linear-gradient(135deg, #FFF5F2 0%, #FFE8E0 100%);
+      min-height: 100vh;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Sora', sans-serif;
+    }
+    
+    .leaflet-container {
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+    }
+    
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes scaleIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+    
+    .animate-slideUp {
+      animation: slideUp 0.4s ease-out forwards;
+    }
+    
+    .animate-fadeIn {
+      animation: fadeIn 0.3s ease-out forwards;
+    }
+    
+    .animate-scaleIn {
+      animation: scaleIn 0.3s ease-out forwards;
+    }
+    
+    .card-hover {
+      transition: all 0.3s ease;
+    }
+    
+    .card-hover:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(230, 57, 70, 0.15);
+    }
+    
+    .gradient-text {
+      background: linear-gradient(135deg, #E63946 0%, #F77F00 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #E63946 0%, #F77F00 100%);
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(230, 57, 70, 0.3);
+    }
+    
+    .category-card {
+      background: white;
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+    
+    .category-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 24px rgba(230, 57, 70, 0.15);
+      border-color: #E63946;
+    }
+    
+    .questionnaire-option {
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: 2px solid #E0E0E0;
+    }
+    
+    .questionnaire-option:hover {
+      border-color: #F77F00;
+      background: #FFF5F2;
+    }
+    
+    .questionnaire-option.selected {
+      border-color: #E63946;
+      background: linear-gradient(135deg, #FFE8E0 0%, #FFF5F2 100%);
+    }
+    
+    .place-card {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .place-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(230, 57, 70, 0.15);
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    
+    .badge-gold {
+      background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+      color: #7A4D00;
+    }
+    
+    .badge-silver {
+      background: linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%);
+      color: #4A4A4A;
+    }
+    
+    .badge-bronze {
+      background: linear-gradient(135deg, #CD7F32 0%, #B87333 100%);
+      color: #4A2D1A;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #F5F5F5;
+      border-radius: 10px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, #E63946 0%, #F77F00 100%);
+      border-radius: 10px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg, #C72C38 0%, #D66D00 100%);
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+    
+    // Mock data for Nigerian places
+    const MOCK_PLACES = {
+      restaurants: [
+        {
+          id: 'r1',
+          name: 'Terra Kulture Restaurant',
+          category: 'restaurant',
+          location: { lat: 6.4281, lng: 3.4219, address: '1376 Tiamiyu Savage St, Victoria Island, Lagos', city: 'Lagos', state: 'Lagos' },
+          rating: 4.5,
+          priceRange: '₦₦₦',
+          cuisine: ['Nigerian', 'Continental'],
+          ambiance: 'Upscale & Elegant',
+          amenities: ['Outdoor seating', 'Art gallery', 'Parking', 'WiFi', 'Live music'],
+          openingHours: { mon: '10:00-22:00', tue: '10:00-22:00', wed: '10:00-22:00', thu: '10:00-22:00', fri: '10:00-23:00', sat: '10:00-23:00', sun: '12:00-22:00' },
+          images: ['https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800'],
+          description: 'Terra Kulture is a cultural hub celebrating Nigerian art, food, and heritage in an elegant setting.',
+          historicalInfo: 'Established in 2003, Terra Kulture has become a landmark for promoting Nigerian culture through arts, theatre, and cuisine.',
+          reviews: 230,
+          contact: { phone: '+234 1 270 0898', email: 'info@terrakulture.com', website: 'www.terrakulture.com' },
+          budget: '₦15,000-30,000',
+          occasion: 'Date night'
+        },
+        {
+          id: 'r2',
+          name: 'Yellow Chilli',
+          category: 'restaurant',
+          location: { lat: 6.4367, lng: 3.4239, address: '13A Muri Okunola St, Victoria Island, Lagos', city: 'Lagos', state: 'Lagos' },
+          rating: 4.3,
+          priceRange: '₦₦',
+          cuisine: ['Nigerian', 'African'],
+          ambiance: 'Casual & Relaxed',
+          amenities: ['WiFi', 'Parking', 'Delivery available', 'Outdoor seating'],
+          openingHours: { mon: '11:00-22:00', tue: '11:00-22:00', wed: '11:00-22:00', thu: '11:00-22:00', fri: '11:00-23:00', sat: '11:00-23:00', sun: '12:00-21:00' },
+          images: ['https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800'],
+          description: 'Authentic Nigerian cuisine in a vibrant, casual atmosphere perfect for families.',
+          historicalInfo: 'Yellow Chilli brings traditional Nigerian flavors with a modern twist, serving locals since 2010.',
+          reviews: 187,
+          contact: { phone: '+234 1 461 4703', email: 'info@yellowchilli.ng', website: 'www.yellowchilli.ng' },
+          budget: '₦5,000-15,000',
+          occasion: 'Casual meal'
+        },
+        {
+          id: 'r3',
+          name: 'Cactus Restaurant',
+          category: 'restaurant',
+          location: { lat: 6.4423, lng: 3.4135, address: '21 Osborne Rd, Ikoyi, Lagos', city: 'Lagos', state: 'Lagos' },
+          rating: 4.4,
+          priceRange: '₦₦₦',
+          cuisine: ['Continental', 'Lebanese', 'Mediterranean'],
+          ambiance: 'Upscale & Elegant',
+          amenities: ['Outdoor seating', 'Parking', 'WiFi', 'Bar', 'Live music'],
+          openingHours: { mon: '12:00-23:00', tue: '12:00-23:00', wed: '12:00-23:00', thu: '12:00-00:00', fri: '12:00-01:00', sat: '12:00-01:00', sun: '12:00-23:00' },
+          images: ['https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800'],
+          description: 'Sophisticated dining experience with Lebanese and Mediterranean flavors.',
+          historicalInfo: 'A Lagos dining institution since 1995, known for its beautiful outdoor garden setting.',
+          reviews: 312,
+          contact: { phone: '+234 1 270 1089', email: 'reservations@cactusrestaurant.ng', website: 'www.cactusrestaurant.ng' },
+          budget: '₦15,000-30,000',
+          occasion: 'Business meeting'
+        }
+      ],
+      hotels: [
+        {
+          id: 'h1',
+          name: 'Eko Hotel & Suites',
+          category: 'hotel',
+          location: { lat: 6.4274, lng: 3.4239, address: '1415 Adetokunbo Ademola St, Victoria Island, Lagos', city: 'Lagos', state: 'Lagos' },
+          rating: 4.6,
+          priceRange: '₦₦₦₦',
+          amenities: ['Pool', 'Spa', 'Gym', 'Restaurant', 'Bar', 'Conference rooms', 'WiFi', 'Parking'],
+          openingHours: { mon: '24/7', tue: '24/7', wed: '24/7', thu: '24/7', fri: '24/7', sat: '24/7', sun: '24/7' },
+          images: ['https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800'],
+          description: 'Luxury 5-star hotel overlooking the Atlantic Ocean with world-class amenities.',
+          historicalInfo: 'Eko Hotel opened in 2003 and has become an iconic landmark of Lagos luxury hospitality.',
+          reviews: 845,
+          contact: { phone: '+234 1 277 7000', email: 'info@ekohotels.com', website: 'www.ekohotels.com' },
+          budget: '₦50,000+',
+          roomType: 'Luxury suite'
+        },
+        {
+          id: 'h2',
+          name: 'Southern Sun Ikoyi',
+          category: 'hotel',
+          location: { lat: 6.4541, lng: 3.4316, address: 'Kingsway Rd, Ikoyi, Lagos', city: 'Lagos', state: 'Lagos' },
+          rating: 4.4,
+          priceRange: '₦₦₦',
+          amenities: ['Pool', 'Gym', 'Restaurant', 'Bar', 'WiFi', 'Parking', 'Business center'],
+          openingHours: { mon: '24/7', tue: '24/7', wed: '24/7', thu: '24/7', fri: '24/7', sat: '24/7', sun: '24/7' },
+          images: ['https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800'],
+          description: 'Modern 4-star hotel in the heart of Ikoyi with excellent business facilities.',
+          historicalInfo: 'Part of the Southern Sun chain, bringing international standards to Lagos since 2010.',
+          reviews: 567,
+          contact: { phone: '+234 1 270 2900', email: 'reservations@southernsun.com', website: 'www.southernsun.com' },
+          budget: '₦20,000-50,000',
+          roomType: 'Deluxe room'
+        },
+        {
+          id: 'h3',
+          name: 'Lagos Continental Hotel',
+          category: 'hotel',
+          location: { lat: 6.4297, lng: 3.4260, address: '52A Kofo Abayomi St, Victoria Island, Lagos', city: 'Lagos', state: 'Lagos' },
+          rating: 4.2,
+          priceRange: '₦₦',
+          amenities: ['WiFi', 'Restaurant', 'Bar', 'Parking', 'Conference room'],
+          openingHours: { mon: '24/7', tue: '24/7', wed: '24/7', thu: '24/7', fri: '24/7', sat: '24/7', sun: '24/7' },
+          images: ['https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800'],
+          description: 'Comfortable 3-star hotel offering great value in Victoria Island.',
+          historicalInfo: 'A reliable mid-range option serving business travelers and tourists for over 15 years.',
+          reviews: 423,
+          contact: { phone: '+234 1 461 8800', email: 'info@lagoscontinental.com', website: 'www.lagoscontinental.com' },
+          budget: '₦7,000-20,000',
+          roomType: 'Standard room'
+        }
+      ],
+      cinemas: [
+        {
+          id: 'c1',
+          name: 'Filmhouse IMAX Lekki',
+          category: 'cinema',
+          location: { lat: 6.4377, lng: 3.5108, address: 'Lekki-Epe Expressway, Lekki, Lagos', city: 'Lagos', state: 'Lagos' },
+          rating: 4.5,
+          priceRange: '₦₦',
+          amenities: ['IMAX screen', 'VIP lounge', 'Parking', 'Food court', 'Arcade'],
+          openingHours: { mon: '10:00-23:00', tue: '10:00-23:00', wed: '10:00-23:00', thu: '10:00-23:00', fri: '10:00-01:00', sat: '10:00-01:00', sun: '10:00-23:00' },
+          images: ['https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800'],
+          description: 'State-of-the-art IMAX cinema with premium viewing experience.',
+          historicalInfo: 'Filmhouse IMAX opened in 2016, bringing world-class cinema technology to Lagos.',
+          reviews: 678,
+          contact: { phone: '+234 1 342 0988', email: 'info@filmhouseng.com', website: 'www.filmhouseng.com' },
+          budget: '₦2,000-5,000',
+          screenType: 'IMAX'
+        }
+      ]
+    };
+    
+    // Nigerian cities with coordinates
+    const NIGERIAN_CITIES = [
+      { name: 'Lagos', lat: 6.5244, lng: 3.3792 },
+      { name: 'Abuja', lat: 9.0765, lng: 7.3986 },
+      { name: 'Port Harcourt', lat: 4.8156, lng: 7.0498 },
+      { name: 'Kano', lat: 12.0022, lng: 8.5920 },
+      { name: 'Ibadan', lat: 7.3775, lng: 3.9470 },
+      { name: 'Benin City', lat: 6.3350, lng: 5.6037 },
+      { name: 'Enugu', lat: 6.5244, lng: 7.5105 },
+      { name: 'Calabar', lat: 4.9517, lng: 8.3220 }
+    ];
+    
+    // Categories
+    const CATEGORIES = [
+      { id: 'restaurants', name: 'Restaurants', icon: '🍽️', color: '#E63946' },
+      { id: 'hotels', name: 'Hotels', icon: '🏨', color: '#F77F00' },
+      { id: 'cinemas', name: 'Cinemas', icon: '🎬', color: '#06A77D' },
+      { id: 'pools', name: 'Pools', icon: '🏊', color: '#4ECDC4' },
+      { id: 'supermarkets', name: 'Supermarkets', icon: '🛒', color: '#FFD23F' },
+      { id: 'services', name: 'Services', icon: '🔧', color: '#9B59B6' }
+    ];
+    
+    // Questionnaire templates
+    const QUESTIONNAIRES = {
+      restaurants: [
+        {
+          id: 'budget',
+          question: "What's your budget per person?",
+          type: 'single',
+          options: ['₦2,000-5,000', '₦5,000-15,000', '₦15,000-30,000', '₦30,000+']
+        },
+        {
+          id: 'cuisine',
+          question: 'What type of cuisine?',
+          type: 'single',
+          options: ['Nigerian', 'Continental', 'Asian', 'Lebanese', 'Italian', 'Fast Food', 'Any']
+        },
+        {
+          id: 'ambiance',
+          question: 'Preferred ambiance?',
+          type: 'single',
+          options: ['Casual & Relaxed', 'Upscale & Elegant', 'Lively & Social', 'Quiet & Intimate']
+        },
+        {
+          id: 'distance',
+          question: 'How far are you willing to travel?',
+          type: 'single',
+          options: ['Walking distance (1km)', 'Short drive (5km)', 'Anywhere nearby (10km)', "Don't mind distance"]
+        },
+        {
+          id: 'occasion',
+          question: 'Dining occasion?',
+          type: 'single',
+          options: ['Casual meal', 'Business meeting', 'Date night', 'Family gathering', 'Celebration']
+        },
+        {
+          id: 'features',
+          question: 'Must-have features?',
+          type: 'multi',
+          options: ['Outdoor seating', 'Live music', 'Parking', 'WiFi', 'Kid-friendly', 'Delivery available']
+        }
+      ],
+      hotels: [
+        {
+          id: 'budget',
+          question: 'What\'s your budget per night?',
+          type: 'single',
+          options: ['₦7,000-20,000', '₦20,000-50,000', '₦50,000+']
+        },
+        {
+          id: 'roomType',
+          question: 'Room type preference?',
+          type: 'single',
+          options: ['Standard room', 'Deluxe room', 'Luxury suite', 'Any']
+        },
+        {
+          id: 'distance',
+          question: 'Preferred location distance?',
+          type: 'single',
+          options: ['Very close (1-2km)', 'Moderate (3-5km)', 'Anywhere in city']
+        },
+        {
+          id: 'features',
+          question: 'Must-have amenities?',
+          type: 'multi',
+          options: ['Pool', 'Gym', 'Spa', 'Restaurant', 'WiFi', 'Parking', 'Business center']
+        },
+        {
+          id: 'purpose',
+          question: 'Purpose of stay?',
+          type: 'single',
+          options: ['Business', 'Leisure', 'Family vacation', 'Event/Wedding']
+        }
+      ],
+      cinemas: [
+        {
+          id: 'budget',
+          question: 'Ticket budget per person?',
+          type: 'single',
+          options: ['₦2,000-5,000', '₦5,000-10,000', '₦10,000+']
+        },
+        {
+          id: 'screenType',
+          question: 'Screen preference?',
+          type: 'single',
+          options: ['Standard', 'IMAX', '3D', 'VIP/Premium', 'Any']
+        },
+        {
+          id: 'distance',
+          question: 'How far willing to travel?',
+          type: 'single',
+          options: ['Very close (1-3km)', 'Moderate (5-10km)', 'Anywhere']
+        },
+        {
+          id: 'features',
+          question: 'Important features?',
+          type: 'multi',
+          options: ['VIP lounge', 'Food court', 'Parking', 'Arcade games']
+        }
+      ]
+    };
+    
+    // Main App Component
+    function TourNaijaApp() {
+      const [currentView, setCurrentView] = useState('home'); // home, questionnaire, results, details
+      const [selectedCategory, setSelectedCategory] = useState(null);
+      const [currentLocation, setCurrentLocation] = useState({ city: 'Lagos', lat: 6.5244, lng: 3.3792 });
+      const [questionnaireAnswers, setQuestionnaireAnswers] = useState({});
+      const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+      const [searchResults, setSearchResults] = useState([]);
+      const [selectedPlace, setSelectedPlace] = useState(null);
+      const [viewMode, setViewMode] = useState('list'); // list or map
+      const [favorites, setFavorites] = useState([]);
+      const [searchHistory, setSearchHistory] = useState([]);
+      
+      useEffect(() => {
+        // Load favorites and search history from localStorage
+        const savedFavorites = localStorage.getItem('tournaija-favorites');
+        const savedHistory = localStorage.getItem('tournaija-history');
+        if (savedFavorites) setFavorites(JSON.parse(savedFavorites));
+        if (savedHistory) setSearchHistory(JSON.parse(savedHistory));
+      }, []);
+      
+      const handleCategorySelect = (category) => {
+        setSelectedCategory(category);
+        setQuestionnaireAnswers({});
+        setCurrentQuestionIndex(0);
+        setCurrentView('questionnaire');
+      };
+      
+      const handleAnswerSelect = (questionId, answer, isMulti = false) => {
+        if (isMulti) {
+          const current = questionnaireAnswers[questionId] || [];
+          const updated = current.includes(answer)
+            ? current.filter(a => a !== answer)
+            : [...current, answer];
+          setQuestionnaireAnswers({ ...questionnaireAnswers, [questionId]: updated });
+        } else {
+          setQuestionnaireAnswers({ ...questionnaireAnswers, [questionId]: answer });
+        }
+      };
+      
+      const handleNextQuestion = () => {
+        const questions = QUESTIONNAIRES[selectedCategory.id];
+        if (currentQuestionIndex < questions.length - 1) {
+          setCurrentQuestionIndex(currentQuestionIndex + 1);
+        } else {
+          // Process results
+          processResults();
+        }
+      };
+      
+      const handlePreviousQuestion = () => {
+        if (currentQuestionIndex > 0) {
+          setCurrentQuestionIndex(currentQuestionIndex - 1);
+        }
+      };
+      
+      const processResults = () => {
+        const places = MOCK_PLACES[selectedCategory.id] || [];
+        const scored = places.map(place => ({
+          ...place,
+          score: calculateMatchScore(place, questionnaireAnswers)
+        }));
+        
+        const sorted = scored.sort((a, b) => b.score - a.score);
+        const top3 = sorted.slice(0, 3);
+        
+        setSearchResults(top3);
+        setCurrentView('results');
+        
+        // Save to search history
+        const historyItem = {
+          category: selectedCategory.name,
+          timestamp: new Date().toISOString(),
+          answers: questionnaireAnswers
+        };
+        const newHistory = [historyItem, ...searchHistory].slice(0, 5);
+        setSearchHistory(newHistory);
+        localStorage.setItem('tournaija-history', JSON.stringify(newHistory));
+      };
+      
+      const calculateMatchScore = (place, answers) => {
+        let score = 0;
+        
+        // Budget match (25 points)
+        if (place.budget === answers.budget) score += 25;
+        else if (answers.budget) score += 10;
+        
+        // Cuisine/Type match (20 points)
+        if (place.cuisine && answers.cuisine) {
+          if (answers.cuisine === 'Any' || place.cuisine.includes(answers.cuisine)) {
+            score += 20;
+          }
+        }
+        
+        // Ambiance match (15 points)
+        if (place.ambiance === answers.ambiance) score += 15;
+        
+        // Distance preference (15 points)
+        score += 15; // Simplified for mock data
+        
+        // Features match (15 points)
+        if (answers.features && place.amenities) {
+          const matches = answers.features.filter(f => place.amenities.includes(f));
+          score += (matches.length / answers.features.length) * 15;
+        }
+        
+        // Occasion/Purpose match (10 points)
+        if (place.occasion === answers.occasion || place.purpose === answers.purpose) {
+          score += 10;
+        }
+        
+        // Rating boost
+        score += place.rating * 2;
+        
+        return Math.min(score, 100);
+      };
+      
+      const handlePlaceClick = (place) => {
+        setSelectedPlace(place);
+        setCurrentView('details');
+      };
+      
+      const handleBack = () => {
+        if (currentView === 'details') {
+          setCurrentView('results');
+        } else if (currentView === 'results') {
+          setCurrentView('questionnaire');
+        } else if (currentView === 'questionnaire') {
+          setCurrentView('home');
+        }
+      };
+      
+      const toggleFavorite = (place) => {
+        const isFavorite = favorites.some(f => f.id === place.id);
+        const newFavorites = isFavorite
+          ? favorites.filter(f => f.id !== place.id)
+          : [...favorites, place];
+        setFavorites(newFavorites);
+        localStorage.setItem('tournaija-favorites', JSON.stringify(newFavorites));
+      };
+      
+      const isFavorite = (placeId) => {
+        return favorites.some(f => f.id === placeId);
+      };
+      
+      return (
+        <div className="min-h-screen">
+          {currentView === 'home' && (
+            <HomeScreen
+              currentLocation={currentLocation}
+              categories={CATEGORIES}
+              onCategorySelect={handleCategorySelect}
+              searchHistory={searchHistory}
+            />
+          )}
+          
+          {currentView === 'questionnaire' && (
+            <QuestionnaireScreen
+              category={selectedCategory}
+              questions={QUESTIONNAIRES[selectedCategory.id]}
+              currentQuestionIndex={currentQuestionIndex}
+              answers={questionnaireAnswers}
+              onAnswerSelect={handleAnswerSelect}
+              onNext={handleNextQuestion}
+              onPrevious={handlePreviousQuestion}
+              onBack={handleBack}
+            />
+          )}
+          
+          {currentView === 'results' && (
+            <ResultsScreen
+              category={selectedCategory}
+              results={searchResults}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              onPlaceClick={handlePlaceClick}
+              onBack={handleBack}
+              currentLocation={currentLocation}
+              isFavorite={isFavorite}
+              onToggleFavorite={toggleFavorite}
+            />
+          )}
+          
+          {currentView === 'details' && (
+            <PlaceDetailsScreen
+              place={selectedPlace}
+              onBack={handleBack}
+              currentLocation={currentLocation}
+              isFavorite={isFavorite(selectedPlace.id)}
+              onToggleFavorite={() => toggleFavorite(selectedPlace)}
+            />
+          )}
+        </div>
+      );
+    }
+    
+    // Home Screen Component
+    function HomeScreen({ currentLocation, categories, onCategorySelect, searchHistory }) {
+      return (
+        <div className="min-h-screen p-6 pb-20">
+          <div className="max-w-6xl mx-auto">
+            {/* Header */}
+            <div className="mb-8 animate-fadeIn">
+              <div className="flex items-center justify-between mb-4">
+                <h1 className="text-4xl font-bold gradient-text">🌍 TourNaija</h1>
+                <button className="p-2 rounded-lg hover:bg-white/50 transition">
+                  <i data-lucide="menu" className="w-6 h-6"></i>
+                </button>
+              </div>
+              
+              <div className="flex items-center gap-2 text-gray-600 mb-4">
+                <i data-lucide="map-pin" className="w-5 h-5 text-red-500"></i>
+                <span className="font-medium">{currentLocation.city}, Nigeria</span>
+              </div>
+              
+              {/* Search Bar */}
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search anywhere..."
+                  className="w-full px-4 py-3 pl-12 rounded-xl border-2 border-gray-200 focus:border-orange-500 focus:outline-none transition"
+                />
+                <i data-lucide="search" className="absolute left-4 top-3.5 w-5 h-5 text-gray-400"></i>
+              </div>
+            </div>
+            
+            {/* Categories Grid */}
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold mb-4 animate-slideUp" style={{animationDelay: '0.1s'}}>
+                What are you looking for?
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {categories.map((category, index) => (
+                  <div
+                    key={category.id}
+                    className="category-card animate-scaleIn"
+                    style={{animationDelay: `${0.1 + index * 0.05}s`}}
+                    onClick={() => onCategorySelect(category)}
+                  >
+                    <div className="text-5xl mb-3">{category.icon}</div>
+                    <h3 className="text-lg font-semibold text-gray-800">{category.name}</h3>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Recent Searches */}
+            {searchHistory.length > 0 && (
+              <div className="animate-slideUp" style={{animationDelay: '0.4s'}}>
+                <h2 className="text-xl font-bold mb-3">Recently Searched</h2>
+                <div className="space-y-2">
+                  {searchHistory.slice(0, 3).map((item, index) => (
+                    <div
+                      key={index}
+                      className="bg-white p-3 rounded-lg flex items-center gap-3 hover:shadow-md transition cursor-pointer"
+                    >
+                      <i data-lucide="clock" className="w-4 h-4 text-gray-400"></i>
+                      <span className="text-sm text-gray-700">{item.category}</span>
+                      <span className="text-xs text-gray-400 ml-auto">
+                        {new Date(item.timestamp).toLocaleDateString()}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+    
+    // Questionnaire Screen Component
+    function QuestionnaireScreen({ 
+      category, 
+      questions, 
+      currentQuestionIndex, 
+      answers, 
+      onAnswerSelect, 
+      onNext, 
+      onPrevious, 
+      onBack 
+    }) {
+      const currentQuestion = questions[currentQuestionIndex];
+      const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+      const canProceed = answers[currentQuestion.id] && 
+        (currentQuestion.type === 'single' || answers[currentQuestion.id].length > 0);
+      
+      useEffect(() => {
+        lucide.createIcons();
+      }, [currentQuestionIndex]);
+      
+      return (
+        <div className="min-h-screen p-6">
+          <div className="max-w-2xl mx-auto">
+            {/* Header */}
+            <div className="flex items-center gap-4 mb-8">
+              <button
+                onClick={onBack}
+                className="p-2 rounded-lg hover:bg-white/50 transition"
+              >
+                <i data-lucide="arrow-left" className="w-6 h-6"></i>
+              </button>
+              <div className="flex-1">
+                <h1 className="text-2xl font-bold">Find {category.name}</h1>
+                <p className="text-sm text-gray-600">
+                  Question {currentQuestionIndex + 1} of {questions.length}
+                </p>
+              </div>
+            </div>
+            
+            {/* Progress Bar */}
+            <div className="h-2 bg-gray-200 rounded-full mb-8 overflow-hidden">
+              <div
+                className="h-full btn-primary transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            
+            {/* Question */}
+            <div className="animate-fadeIn">
+              <h2 className="text-2xl font-bold mb-6">{currentQuestion.question}</h2>
+              
+              <div className="space-y-3 mb-8">
+                {currentQuestion.options.map((option) => {
+                  const isSelected = currentQuestion.type === 'multi'
+                    ? (answers[currentQuestion.id] || []).includes(option)
+                    : answers[currentQuestion.id] === option;
+                  
+                  return (
+                    <div
+                      key={option}
+                      className={`questionnaire-option p-4 rounded-xl ${isSelected ? 'selected' : ''}`}
+                      onClick={() => onAnswerSelect(currentQuestion.id, option, currentQuestion.type === 'multi')}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          isSelected ? 'bg-red-500 border-red-500' : 'border-gray-300'
+                        }`}>
+                          {isSelected && (
+                            <i data-lucide="check" className="w-3 h-3 text-white"></i>
+                          )}
+                        </div>
+                        <span className="font-medium">{option}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {currentQuestion.type === 'multi' && (
+                <p className="text-sm text-gray-500 mb-4">Select all that apply</p>
+              )}
+            </div>
+            
+            {/* Navigation Buttons */}
+            <div className="flex gap-3">
+              {currentQuestionIndex > 0 && (
+                <button
+                  onClick={onPrevious}
+                  className="px-6 py-3 rounded-xl border-2 border-gray-300 font-semibold hover:bg-gray-50 transition"
+                >
+                  Previous
+                </button>
+              )}
+              <button
+                onClick={onNext}
+                disabled={!canProceed}
+                className={`flex-1 px-6 py-3 rounded-xl font-semibold text-white transition ${
+                  canProceed
+                    ? 'btn-primary'
+                    : 'bg-gray-300 cursor-not-allowed'
+                }`}
+              >
+                {currentQuestionIndex === questions.length - 1 ? 'Find Places' : 'Next'}
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    // Results Screen Component
+    function ResultsScreen({ 
+      category, 
+      results, 
+      viewMode, 
+      onViewModeChange, 
+      onPlaceClick, 
+      onBack,
+      currentLocation,
+      isFavorite,
+      onToggleFavorite
+    }) {
+      const mapRef = useRef(null);
+      const mapInstanceRef = useRef(null);
+      
+      useEffect(() => {
+        lucide.createIcons();
+        
+        if (viewMode === 'map' && mapRef.current && !mapInstanceRef.current) {
+          // Initialize map
+          mapInstanceRef.current = L.map(mapRef.current).setView(
+            [currentLocation.lat, currentLocation.lng],
+            13
+          );
+          
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+          }).addTo(mapInstanceRef.current);
+          
+          // Add markers
+          results.forEach((place, index) => {
+            const icon = L.divIcon({
+              html: `<div style="background: linear-gradient(135deg, #E63946 0%, #F77F00 100%); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">${index + 1}</div>`,
+              className: '',
+              iconSize: [40, 40],
+              iconAnchor: [20, 20]
+            });
+            
+            const marker = L.marker([place.location.lat, place.location.lng], { icon })
+              .addTo(mapInstanceRef.current)
+              .bindPopup(`<b>${place.name}</b><br>${place.location.address}`);
+            
+            marker.on('click', () => onPlaceClick(place));
+          });
+        }
+        
+        return () => {
+          if (mapInstanceRef.current) {
+            mapInstanceRef.current.remove();
+            mapInstanceRef.current = null;
+          }
+        };
+      }, [viewMode]);
+      
+      const getRankBadge = (index) => {
+        if (index === 0) return <span className="badge badge-gold">🥇 #1</span>;
+        if (index === 1) return <span className="badge badge-silver">🥈 #2</span>;
+        if (index === 2) return <span className="badge badge-bronze">🥉 #3</span>;
+        return null;
+      };
+      
+      return (
+        <div className="min-h-screen pb-20">
+          {/* Header */}
+          <div className="bg-white border-b border-gray-200 p-4 sticky top-0 z-10">
+            <div className="max-w-6xl mx-auto">
+              <div className="flex items-center gap-4 mb-4">
+                <button onClick={onBack} className="p-2 rounded-lg hover:bg-gray-100 transition">
+                  <i data-lucide="arrow-left" className="w-6 h-6"></i>
+                </button>
+                <div className="flex-1">
+                  <h1 className="text-xl font-bold">Best {category.name} for You</h1>
+                  <p className="text-sm text-gray-600">{results.length} recommendations</p>
+                </div>
+              </div>
+              
+              {/* View Toggle */}
+              <div className="flex gap-2 bg-gray-100 p-1 rounded-lg w-fit">
+                <button
+                  onClick={() => onViewModeChange('list')}
+                  className={`px-4 py-2 rounded-md font-medium transition flex items-center gap-2 ${
+                    viewMode === 'list' ? 'bg-white shadow-sm' : 'text-gray-600'
+                  }`}
+                >
+                  <i data-lucide="list" className="w-4 h-4"></i>
+                  List
+                </button>
+                <button
+                  onClick={() => onViewModeChange('map')}
+                  className={`px-4 py-2 rounded-md font-medium transition flex items-center gap-2 ${
+                    viewMode === 'map' ? 'bg-white shadow-sm' : 'text-gray-600'
+                  }`}
+                >
+                  <i data-lucide="map" className="w-4 h-4"></i>
+                  Map
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          {/* Content */}
+          <div className="max-w-6xl mx-auto p-6">
+            {viewMode === 'list' ? (
+              <div className="space-y-4 animate-fadeIn">
+                {results.map((place, index) => (
+                  <div
+                    key={place.id}
+                    className="place-card"
+                    onClick={() => onPlaceClick(place)}
+                  >
+                    <div className="flex flex-col md:flex-row">
+                      <img
+                        src={place.images[0]}
+                        alt={place.name}
+                        className="w-full md:w-48 h-48 object-cover"
+                      />
+                      <div className="flex-1 p-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            {getRankBadge(index)}
+                            <h3 className="text-xl font-bold mt-1">{place.name}</h3>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onToggleFavorite(place);
+                            }}
+                            className="p-2 rounded-full hover:bg-gray-100 transition"
+                          >
+                            <i 
+                              data-lucide="heart" 
+                              className={`w-5 h-5 ${isFavorite(place.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'}`}
+                            ></i>
+                          </button>
+                        </div>
+                        
+                        <div className="flex items-center gap-3 mb-2 text-sm">
+                          <div className="flex items-center gap-1">
+                            <i data-lucide="star" className="w-4 h-4 text-yellow-500 fill-yellow-500"></i>
+                            <span className="font-semibold">{place.rating}</span>
+                            <span className="text-gray-500">({place.reviews})</span>
+                          </div>
+                          <span className="text-gray-400">•</span>
+                          <span className="font-semibold text-orange-600">{place.priceRange}</span>
+                          <span className="text-gray-400">•</span>
+                          <span className="text-gray-600">2.3 km away</span>
+                        </div>
+                        
+                        {place.cuisine && (
+                          <div className="flex gap-2 mb-2">
+                            {place.cuisine.map((c, i) => (
+                              <span key={i} className="px-2 py-1 bg-orange-50 text-orange-700 text-xs rounded-full">
+                                {c}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        
+                        <p className="text-sm text-gray-600 mb-3">{place.description}</p>
+                        
+                        <div className="flex gap-2">
+                          <button className="px-4 py-2 btn-primary text-white text-sm rounded-lg font-semibold flex items-center gap-2">
+                            <i data-lucide="navigation" className="w-4 h-4"></i>
+                            Get Directions
+                          </button>
+                          <button className="px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg font-semibold hover:bg-gray-200 transition">
+                            View Details
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="h-[calc(100vh-200px)] rounded-xl overflow-hidden shadow-lg animate-fadeIn">
+                <div ref={mapRef} className="w-full h-full"></div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+    
+    // Place Details Screen Component
+    function PlaceDetailsScreen({ place, onBack, currentLocation, isFavorite, onToggleFavorite }) {
+      const [showHistory, setShowHistory] = useState(false);
+      const [activeTab, setActiveTab] = useState('about'); // about, reviews, photos
+      
+      useEffect(() => {
+        lucide.createIcons();
+      }, [activeTab, showHistory]);
+      
+      return (
+        <div className="min-h-screen pb-20 bg-gray-50">
+          {/* Hero Image */}
+          <div className="relative h-64 md:h-96">
+            <img
+              src={place.images[0]}
+              alt={place.name}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            
+            <button
+              onClick={onBack}
+              className="absolute top-4 left-4 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition"
+            >
+              <i data-lucide="arrow-left" className="w-5 h-5"></i>
+            </button>
+            
+            <button
+              onClick={onToggleFavorite}
+              className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition"
+            >
+              <i 
+                data-lucide="heart" 
+                className={`w-5 h-5 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-700'}`}
+              ></i>
+            </button>
+            
+            <div className="absolute bottom-4 left-4 right-4">
+              <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">{place.name}</h1>
+              <div className="flex items-center gap-3 text-white">
+                <div className="flex items-center gap-1">
+                  <i data-lucide="star" className="w-5 h-5 fill-yellow-400 text-yellow-400"></i>
+                  <span className="font-semibold">{place.rating}</span>
+                  <span className="opacity-80">({place.reviews} reviews)</span>
+                </div>
+                <span>•</span>
+                <span className="font-semibold">{place.priceRange}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="max-w-4xl mx-auto px-6 py-6">
+            {/* Quick Info */}
+            <div className="bg-white rounded-xl p-6 shadow-sm mb-6 animate-slideUp">
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <i data-lucide="map-pin" className="w-5 h-5 text-red-500 mt-1"></i>
+                  <div>
+                    <p className="font-medium">{place.location.address}</p>
+                    <p className="text-sm text-gray-500">{place.location.city}, {place.location.state}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <i data-lucide="clock" className="w-5 h-5 text-green-500"></i>
+                  <div>
+                    <p className="font-medium text-green-600">Open now</p>
+                    <p className="text-sm text-gray-500">Closes 10:00 PM</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <i data-lucide="phone" className="w-5 h-5 text-blue-500"></i>
+                  <p className="font-medium">{place.contact.phone}</p>
+                </div>
+                
+                {place.cuisine && (
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    {place.cuisine.map((c, i) => (
+                      <span key={i} className="px-3 py-1 bg-orange-50 text-orange-700 rounded-full text-sm font-medium">
+                        {c}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Tabs */}
+            <div className="flex gap-4 mb-6 border-b border-gray-200">
+              <button
+                onClick={() => setActiveTab('about')}
+                className={`pb-3 px-1 font-semibold transition ${
+                  activeTab === 'about'
+                    ? 'text-red-600 border-b-2 border-red-600'
+                    : 'text-gray-500'
+                }`}
+              >
+                About
+              </button>
+              <button
+                onClick={() => setActiveTab('photos')}
+                className={`pb-3 px-1 font-semibold transition ${
+                  activeTab === 'photos'
+                    ? 'text-red-600 border-b-2 border-red-600'
+                    : 'text-gray-500'
+                }`}
+              >
+                Photos
+              </button>
+              <button
+                onClick={() => setActiveTab('reviews')}
+                className={`pb-3 px-1 font-semibold transition ${
+                  activeTab === 'reviews'
+                    ? 'text-red-600 border-b-2 border-red-600'
+                    : 'text-gray-500'
+                }`}
+              >
+                Reviews
+              </button>
+            </div>
+            
+            {/* Tab Content */}
+            {activeTab === 'about' && (
+              <div className="space-y-6 animate-fadeIn">
+                <div className="bg-white rounded-xl p-6 shadow-sm">
+                  <h2 className="text-xl font-bold mb-3">About</h2>
+                  <p className="text-gray-700 leading-relaxed">{place.description}</p>
+                </div>
+                
+                <div className="bg-white rounded-xl p-6 shadow-sm">
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-xl font-bold flex items-center gap-2">
+                      <i data-lucide="book-open" className="w-5 h-5 text-orange-600"></i>
+                      History & Culture
+                    </h2>
+                    <button
+                      onClick={() => setShowHistory(!showHistory)}
+                      className="text-sm text-orange-600 font-medium"
+                    >
+                      {showHistory ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+                  {showHistory && (
+                    <p className="text-gray-700 leading-relaxed">{place.historicalInfo}</p>
+                  )}
+                </div>
+                
+                <div className="bg-white rounded-xl p-6 shadow-sm">
+                  <h2 className="text-xl font-bold mb-4">Features & Amenities</h2>
+                  <div className="grid grid-cols-2 gap-3">
+                    {place.amenities.map((amenity, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <i data-lucide="check-circle" className="w-4 h-4 text-green-500"></i>
+                        <span className="text-gray-700">{amenity}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {activeTab === 'photos' && (
+              <div className="bg-white rounded-xl p-6 shadow-sm animate-fadeIn">
+                <h2 className="text-xl font-bold mb-4">Photo Gallery</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="aspect-square rounded-lg overflow-hidden">
+                      <img
+                        src={place.images[0]}
+                        alt={`${place.name} ${i + 1}`}
+                        className="w-full h-full object-cover hover:scale-110 transition duration-300"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {activeTab === 'reviews' && (
+              <div className="bg-white rounded-xl p-6 shadow-sm animate-fadeIn">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold">Reviews ({place.reviews})</h2>
+                  <button className="px-4 py-2 btn-primary text-white text-sm rounded-lg font-semibold">
+                    Write Review
+                  </button>
+                </div>
+                
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="border-b border-gray-200 pb-4">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-500 rounded-full flex items-center justify-center text-white font-bold">
+                          {String.fromCharCode(65 + i)}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-semibold">Anonymous User</p>
+                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <div className="flex">
+                              {[...Array(5)].map((_, j) => (
+                                <i key={j} data-lucide="star" className="w-3 h-3 fill-yellow-400 text-yellow-400"></i>
+                              ))}
+                            </div>
+                            <span>• 2 weeks ago</span>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-gray-700 text-sm">
+                        Amazing experience! The food was excellent and the atmosphere was perfect for our celebration.
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Action Buttons */}
+            <div className="flex gap-3 mt-6">
+              <button className="flex-1 py-4 btn-primary text-white rounded-xl font-bold text-lg flex items-center justify-center gap-2 shadow-lg">
+                <i data-lucide="navigation" className="w-5 h-5"></i>
+                Get Directions
+              </button>
+              <button className="px-6 py-4 bg-white border-2 border-gray-300 rounded-xl font-bold hover:bg-gray-50 transition">
+                <i data-lucide="share-2" className="w-5 h-5"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    // Render the app
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<TourNaijaApp />);
+    
+    // Initialize Lucide icons
+    lucide.createIcons();
+  </script>
+</body>
+</html>
